@@ -61,7 +61,7 @@ spec:
     spec:
       containers:
         - name: rust-atomic-counter-api
-          image: <your-registry>/<your-image>:<tag>
+          image: docker.io/thegalah/rust-atomic-counter-api
           ports:
             - containerPort: 9000
           volumeMounts:
