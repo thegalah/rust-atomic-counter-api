@@ -10,6 +10,7 @@ The Rust Atomic Counter API is a highly performant and reliable web service desi
 1. Concurrency-safe: Built to handle concurrent requests efficiently, ensuring reliable counter updates even under high load.
 1. Lightweight & Fast: Rust's efficiency combined with Actix-web's performance offers a minimal overhead solution.
 1. Easy Integration: Designed to be easily integrated into Argo Workflows or any system requiring unique build IDs.
+1. Data Persistence: Counter values are persisted to a file, enabling the service to resume from the last known count after a restart.
 
 ## API Endpoints
 
@@ -34,3 +35,7 @@ Responses:
 
 1. 200 OK: Returns {"counter": value}.
 1. 500 Internal Server Error: Error fetching value.
+
+## Data Persistence
+
+The API ensures the continuity of counter values across service restarts by writing the current counter value to a file named counter.txt located in the same directory as the executable. This file is read at startup to initialize the counter with the last saved value, allowing the service to seamlessly resume its operation without resetting the counter to zero.
