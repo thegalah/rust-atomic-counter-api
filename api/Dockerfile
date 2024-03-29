@@ -8,11 +8,10 @@ WORKDIR /api
 COPY ./Cargo.toml ./Cargo.toml
 COPY ./Cargo.lock ./Cargo.lock
 
-# Trick to cache dependencies (dummy build)
-RUN mkdir src && \
-    echo "fn main() {}" > src/main.rs && \
+# Trick to cache dependencies (without creating src since it's already there)
+RUN echo "fn main() {}" > src/main.rs && \
     cargo build --release && \
-    rm -rf src/*.rs
+    rm src/main.rs
 
 # Now copy your actual source code
 COPY ./src ./src
@@ -20,6 +19,7 @@ COPY ./src ./src
 # Remove the dummy build artifacts; Note: Adjust the target name if necessary
 RUN rm ./target/release/deps/api* && \
     cargo build --release
+
 
 # Production image
 FROM debian:10.13-slim
