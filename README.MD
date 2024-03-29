@@ -21,9 +21,11 @@ Responses:
 
 1. 200 OK: Server operational.
 1. 500 Internal Server Error: Server issue.
-   ###GET /liveness
-   **Description:** Checks server liveness for orchestrators.
-   Responses:
+
+### GET /liveness
+
+**Description:** Checks server liveness for orchestrators.
+Responses:
 
 1. 200 OK: Server responsive.
 1. 500 Internal Server Error: Server unresponsive.
