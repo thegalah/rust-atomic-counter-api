@@ -16,7 +16,7 @@ RUN cargo build --release
 
 
 # Production image
-FROM debian:buster-slim
+FROM debian:10.13-slim
 ARG APP=/app
 
 RUN apt-get update \
