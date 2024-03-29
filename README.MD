@@ -33,7 +33,7 @@ Responses:
 **Description:** Fetches the current atomic counter value.
 Responses:
 
-1. 200 OK: Returns {"counter": value}.
+1. 200 OK: counter_value.
 1. 500 Internal Server Error: Error fetching value.
 
 ## Data Persistence
