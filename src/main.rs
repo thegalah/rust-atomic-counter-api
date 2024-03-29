@@ -1,9 +1,9 @@
+use actix_web::web::block;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use std::fs::{self, OpenOptions};
-use std::io::{Write};
+use std::io::Write;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
-use actix_web::web::block;
 
 async fn health() -> impl Responder {
     HttpResponse::Ok().body("Server operational")
@@ -37,12 +37,14 @@ fn read_initial_counter_value() -> usize {
 
 async fn counter(counter: web::Data<Arc<AtomicUsize>>) -> impl Responder {
     let count_value = counter.fetch_add(1, Ordering::SeqCst);
-    
+
     // Execute the blocking file write operation asynchronously
     let write_result = block(move || write_counter_to_file(count_value)).await;
 
     match write_result {
-        Ok(_) => HttpResponse::Ok().json(serde_json::json!({ "counter": count_value })),
+        Ok(_) => HttpResponse::Ok()
+            .content_type("text/plain")
+            .body(format!("{}", count_value)),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
 }
