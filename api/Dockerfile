@@ -1,6 +1,5 @@
 FROM rust:1.77.0 as builder
 
-# Create a new Rust project
 RUN USER=root cargo new --bin api
 WORKDIR /api
 
@@ -16,29 +15,24 @@ RUN echo "fn main() {}" > src/main.rs && \
 # Now copy your actual source code
 COPY ./src ./src
 
-# Remove the dummy build artifacts; Note: Adjust the target name if necessary
-RUN rm ./target/release/deps/api* && \
-    cargo build --release
-
+# Build your Rust application targeting musl for static linking
+RUN rustup target add x86_64-unknown-linux-musl && \
+    cargo build --release --target x86_64-unknown-linux-musl
 
 # Production image
-FROM debian:10.13-slim
+FROM alpine:latest
 ARG APP=/app
 
-# Install runtime dependencies
-RUN apt-get update && \
-    apt-get install -y ca-certificates tzdata && \
-    rm -rf /var/lib/apt/lists/* && \
-    mkdir -p ${APP}
+# Install runtime dependencies if any
+RUN apk add --no-cache ca-certificates tzdata
 
 WORKDIR ${APP}
 
-# Copy the binary from the builder stage
-COPY --from=builder /api/target/release/api .
+# Copy the binary from the builder stage and ensure it's statically linked
+COPY --from=builder /api/target/x86_64-unknown-linux-musl/release/api .
 
 # Use an unprivileged user for better security
-RUN groupadd -r rustuser && \
-    useradd -r -g rustuser rustuser && \
+RUN addgroup -S rustuser && adduser -S rustuser -G rustuser && \
     chown rustuser:rustuser ./
 USER rustuser
 
