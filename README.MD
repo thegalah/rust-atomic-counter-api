@@ -39,3 +39,47 @@ Responses:
 ## Data Persistence
 
 The API ensures the continuity of counter values across service restarts by writing the current counter value to a file named counter.txt located in the same directory as the executable. This file is read at startup to initialize the counter with the last saved value, allowing the service to seamlessly resume its operation without resetting the counter to zero.
+
+## Deploying in Kubernetes
+
+Here's how you would deploy this in kubernetes:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rust-atomic-counter-api
+spec:
+  replicas: 1 # Recommended to be 1 if sharing state via a file to avoid write conflicts
+  selector:
+    matchLabels:
+      app: rust-atomic-counter-api
+  template:
+    metadata:
+      labels:
+        app: rust-atomic-counter-api
+    spec:
+      containers:
+        - name: rust-atomic-counter-api
+          image: <your-registry>/<your-image>:<tag>
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - name: counter-storage
+              mountPath: /data
+      volumes:
+        - name: counter-storage
+          persistentVolumeClaim:
+            claimName: counter-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: counter-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Mi
+```
