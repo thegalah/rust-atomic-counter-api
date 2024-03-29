@@ -1,4 +1,4 @@
-FROM rust:1.63 as builder
+FROM rust:1.77.0 as builder
 
 # Create a new Rust project
 RUN USER=root cargo new --bin api
