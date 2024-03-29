@@ -1,36 +1,45 @@
 FROM rust:1.63 as builder
 
-RUN USER=root cargo new --bin rust_time_api
-WORKDIR /app
+# Create a new Rust project
+RUN USER=root cargo new --bin api
+WORKDIR /api
 
-COPY ./Cargo.lock ./Cargo.lock
+# Copy your Cargo.toml and Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
+COPY ./Cargo.lock ./Cargo.lock
 
-RUN cargo build --release
-RUN rm src/*.rs
+# Trick to cache dependencies (dummy build)
+RUN mkdir src && \
+    echo "fn main() {}" > src/main.rs && \
+    cargo build --release && \
+    rm -rf src/*.rs
 
+# Now copy your actual source code
 COPY ./src ./src
 
-RUN rm ./target/release/deps/api*
-RUN cargo build --release
-
+# Remove the dummy build artifacts; Note: Adjust the target name if necessary
+RUN rm ./target/release/deps/api* && \
+    cargo build --release
 
 # Production image
 FROM debian:10.13-slim
 ARG APP=/app
 
-RUN apt-get update \
-    && apt-get install -y ca-certificates tzdata \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p ${APP}
+# Install runtime dependencies
+RUN apt-get update && \
+    apt-get install -y ca-certificates tzdata && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p ${APP}
 
 WORKDIR ${APP}
 
 # Copy the binary from the builder stage
-COPY --from=builder /app/target/release/api .
+COPY --from=builder /api/target/release/api .
 
-# Use an unprivileged user
-RUN groupadd -r rustuser && useradd -r -g rustuser rustuser
+# Use an unprivileged user for better security
+RUN groupadd -r rustuser && \
+    useradd -r -g rustuser rustuser && \
+    chown rustuser:rustuser ./
 USER rustuser
 
 CMD ["./api"]
