@@ -20,7 +20,7 @@ RUN rustup target add x86_64-unknown-linux-musl && \
     cargo build --release --target x86_64-unknown-linux-musl
 
 # Production image
-FROM alpine:latest
+FROM alpine:3.19.1
 ARG APP=/app
 
 # Install runtime dependencies if any
