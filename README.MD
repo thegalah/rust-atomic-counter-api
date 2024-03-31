@@ -12,6 +12,12 @@ The Rust Atomic Counter API is a highly performant and reliable web service desi
 1. Easy Integration: Designed to be easily integrated into Argo Workflows or any system requiring unique build IDs.
 1. Data Persistence: Counter values are persisted to a file, enabling the service to resume from the last known count after a restart.
 
+## Configuring the Service
+
+### Environment Variables
+
+**PORT:** Sets the port number on which the API server listens. If not specified, the server defaults to port 9000.
+
 ## API Endpoints
 
 ### GET /health
