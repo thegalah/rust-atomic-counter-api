@@ -1,5 +1,7 @@
 use actix_web::web::block;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
+use env_logger::Env;
+use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -51,18 +53,30 @@ async fn counter(counter: web::Data<Arc<AtomicUsize>>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init_from_env(Env::default().default_filter_or("info"));
+
     // Read initial counter value from file
     let initial_counter_value = read_initial_counter_value();
     let counter_data = web::Data::new(Arc::new(AtomicUsize::new(initial_counter_value)));
 
+    // Read port from environment variable with a default value
+    let port = env::var("PORT")
+        .unwrap_or_else(|_| "9000".to_string())
+        .parse::<u16>()
+        .expect("PORT must be a valid number");
+    let host = "0.0.0.0"; // Define host here if you plan to make it configurable as well
+
+    log::info!("Server running on {}:{}", host, port);
+
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default()) // Add the Logger middleware
             .app_data(counter_data.clone())
             .route("/health", web::get().to(health))
             .route("/liveness", web::get().to(liveness))
             .route("/counter", web::get().to(counter))
     })
-    .bind(("0.0.0.0", 9000))?
+    .bind((host, port))?
     .run()
     .await
 }
