@@ -1,6 +1,7 @@
 use actix_web::web::block;
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
 use env_logger::Env;
+use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -59,6 +60,12 @@ async fn main() -> std::io::Result<()> {
     let initial_counter_value = read_initial_counter_value();
     let counter_data = web::Data::new(Arc::new(AtomicUsize::new(initial_counter_value)));
 
+    // Read port from environment variable with a default value
+    let port = env::var("PORT")
+        .unwrap_or_else(|_| "9000".to_string())
+        .parse::<u16>()
+        .expect("PORT must be a valid number");
+
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default()) // Add the Logger middleware
@@ -67,7 +74,8 @@ async fn main() -> std::io::Result<()> {
             .route("/liveness", web::get().to(liveness))
             .route("/counter", web::get().to(counter))
     })
-    .bind(("0.0.0.0", 9000))?
+    // Use the port from the environment variable
+    .bind(("0.0.0.0", port))?
     .run()
     .await
 }
