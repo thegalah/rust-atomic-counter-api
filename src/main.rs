@@ -50,6 +50,7 @@ async fn counter(counter: web::Data<Arc<AtomicUsize>>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("RUST_LOG: {:?}", env::var("RUST_LOG").ok());
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
     let initial_counter_value = read_initial_counter_value();
