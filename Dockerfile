@@ -40,4 +40,6 @@ RUN addgroup -S rustuser && adduser -S rustuser -G rustuser && \
     chown rustuser:rustuser ./
 USER rustuser
 
+ENV RUST_LOG info
+
 CMD ["./api"]

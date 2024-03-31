@@ -15,7 +15,6 @@ async fn liveness() -> impl Responder {
     HttpResponse::Ok().body("Server responsive")
 }
 
-// Helper function to write the counter value to a file
 fn write_counter_to_file(count_value: usize) -> std::io::Result<()> {
     let mut file = OpenOptions::new()
         .write(true)
@@ -26,7 +25,6 @@ fn write_counter_to_file(count_value: usize) -> std::io::Result<()> {
     Ok(())
 }
 
-// Helper function to read the initial counter value from a file
 fn read_initial_counter_value() -> usize {
     let path = "counter.txt";
     if let Ok(contents) = fs::read_to_string(path) {
@@ -40,7 +38,6 @@ fn read_initial_counter_value() -> usize {
 async fn counter(counter: web::Data<Arc<AtomicUsize>>) -> impl Responder {
     let count_value = counter.fetch_add(1, Ordering::SeqCst);
 
-    // Execute the blocking file write operation asynchronously
     let write_result = block(move || write_counter_to_file(count_value)).await;
 
     match write_result {
@@ -53,18 +50,17 @@ async fn counter(counter: web::Data<Arc<AtomicUsize>>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("RUST_LOG: {:?}", env::var("RUST_LOG").ok());
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
-    // Read initial counter value from file
     let initial_counter_value = read_initial_counter_value();
     let counter_data = web::Data::new(Arc::new(AtomicUsize::new(initial_counter_value)));
 
-    // Read port from environment variable with a default value
     let port = env::var("PORT")
         .unwrap_or_else(|_| "9000".to_string())
         .parse::<u16>()
         .expect("PORT must be a valid number");
-    let host = "0.0.0.0"; // Define host here if you plan to make it configurable as well
+    let host = "0.0.0.0";
 
     log::info!("Server running on {}:{}", host, port);
 
