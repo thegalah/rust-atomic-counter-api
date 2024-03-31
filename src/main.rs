@@ -53,7 +53,6 @@ async fn counter(counter: web::Data<Arc<AtomicUsize>>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Initialize the logger
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
     // Read initial counter value from file
@@ -65,6 +64,9 @@ async fn main() -> std::io::Result<()> {
         .unwrap_or_else(|_| "9000".to_string())
         .parse::<u16>()
         .expect("PORT must be a valid number");
+    let host = "0.0.0.0"; // Define host here if you plan to make it configurable as well
+
+    log::info!("Server running on {}:{}", host, port);
 
     HttpServer::new(move || {
         App::new()
@@ -74,8 +76,7 @@ async fn main() -> std::io::Result<()> {
             .route("/liveness", web::get().to(liveness))
             .route("/counter", web::get().to(counter))
     })
-    // Use the port from the environment variable
-    .bind(("0.0.0.0", port))?
+    .bind((host, port))?
     .run()
     .await
 }
