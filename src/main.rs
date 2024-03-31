@@ -62,7 +62,7 @@ async fn main() -> std::io::Result<()> {
             .route("/liveness", web::get().to(liveness))
             .route("/counter", web::get().to(counter))
     })
-    .bind(("127.0.0.1", 9000))?
+    .bind(("0.0.0.0", 9000))?
     .run()
     .await
 }
