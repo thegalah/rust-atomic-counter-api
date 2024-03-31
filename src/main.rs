@@ -1,5 +1,6 @@
 use actix_web::web::block;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
+use env_logger::Env;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -51,12 +52,16 @@ async fn counter(counter: web::Data<Arc<AtomicUsize>>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // Initialize the logger
+    env_logger::init_from_env(Env::default().default_filter_or("info"));
+
     // Read initial counter value from file
     let initial_counter_value = read_initial_counter_value();
     let counter_data = web::Data::new(Arc::new(AtomicUsize::new(initial_counter_value)));
 
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default()) // Add the Logger middleware
             .app_data(counter_data.clone())
             .route("/health", web::get().to(health))
             .route("/liveness", web::get().to(liveness))
